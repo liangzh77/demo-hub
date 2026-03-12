@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>石头剪刀布</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        h1 {
+            color: #fff;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+        .score-board {
+            background: rgba(255,255,255,0.1);
+            border-radius: 20px;
+            padding: 20px 40px;
+            margin-bottom: 40px;
+            display: flex;
+            gap: 40px;
+            color: #fff;
+        }
+        .score {
+            text-align: center;
+        }
+        .score-num {
+            font-size: 3em;
+            font-weight: bold;
+        }
+        .score-label {
+            font-size: 0.9em;
+            opacity: 0.8;
+        }
+        .result {
+            color: #fff;
+            font-size: 2em;
+            margin-bottom: 30px;
+            min-height: 60px;
+        }
+        .choices {
+            display: flex;
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+        .choice {
+            width: 120px;
+            height: 120px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3.5em;
+            cursor: pointer;
+            transition: transform 0.2s, background 0.2s;
+            border: 3px solid transparent;
+        }
+        .choice:hover {
+            transform: scale(1.1);
+            background: rgba(255,255,255,0.2);
+        }
+        .choice.selected {
+            border-color: #ffd700;
+            background: rgba(255,215,0,0.2);
+        }
+        .vs {
+            color: #fff;
+            font-size: 2em;
+            align-self: center;
+            margin: 0 10px;
+        }
+        .btn {
+            padding: 15px 40px;
+            font-size: 1.2em;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            border-radius: 30px;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        .btn:hover {
+            transform: scale(1.05);
+        }
+    </style>
+</head>
+<body>
+    <h1>🪨✂️📄 石头剪刀布</h1>
+    
+    <div class="score-board">
+        <div class="score">
+            <div class="score-num" id="playerScore">0</div>
+            <div class="score-label">你</div>
+        </div>
+        <div class="score">
+            <div class="score-num" id="computerScore">0</div>
+            <div class="score-label">电脑</div>
+        </div>
+    </div>
+
+    <div class="result" id="result">开始你的选择！</div>
+
+    <div class="choices">
+        <div class="choice" data-choice="石头">🪨</div>
+        <div class="choice" data-choice="剪刀">✂️</div>
+        <div class="choice" data-choice="布">📄</div>
+    </div>
+
+    <button class="btn" onclick="resetGame()">重新开始</button>
+
+    <script>
+        let playerScore = 0;
+        let computerScore = 0;
+        const choices = ['石头', '剪刀', '布'];
+        const emojis = { '石头': '🪨', '剪刀': '✂️', '布': '📄' };
+
+        document.querySelectorAll('.choice').forEach(choice => {
+            choice.addEventListener('click', () => play(choice.dataset.choice));
+        });
+
+        function play(playerChoice) {
+            const computerChoice = choices[Math.floor(Math.random() * 3)];
+            
+            let result;
+            if (playerChoice === computerChoice) {
+                result = '平局！';
+            } else if (
+                (playerChoice === '石头' && computerChoice === '剪刀') ||
+                (playerChoice === '剪刀' && computerChoice === '布') ||
+                (playerChoice === '布' && computerChoice === '石头')
+            ) {
+                result = '你赢了！🎉';
+                playerScore++;
+            } else {
+                result = '电脑赢了！🤖';
+                computerScore++;
+            }
+
+            document.getElementById('playerScore').textContent = playerScore;
+            document.getElementById('computerScore').textContent = computerScore;
+            document.getElementById('result').textContent = 
+                `${emojis[playerChoice]} vs ${emojis[computerChoice]} - ${result}`;
+        }
+
+        function resetGame() {
+            playerScore = 0;
+            computerScore = 0;
+            document.getElementById('playerScore').textContent = '0';
+            document.getElementById('computerScore').textContent = '0';
+            document.getElementById('result').textContent = '开始你的选择！';
+        }
+    </script>
+</body>
+</html>
