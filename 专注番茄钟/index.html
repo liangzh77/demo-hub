@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>专注番茄钟 - 番茄工作法计时工具</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: #333;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            text-align: center;
+            max-width: 500px;
+            width: 90%;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            color: #667eea;
+        }
+
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 1rem;
+        }
+
+        .timer-display {
+            font-size: 5rem;
+            font-weight: bold;
+            color: #667eea;
+            margin: 30px 0;
+            font-family: 'Courier New', monospace;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .mode-indicator {
+            display: inline-block;
+            padding: 8px 20px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            margin-bottom: 20px;
+            background: #f0f0f0;
+            color: #666;
+        }
+
+        .mode-indicator.work {
+            background: #e8f5e9;
+            color: #4caf50;
+        }
+
+        .mode-indicator.break {
+            background: #e3f2fd;
+            color: #2196f3;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #f0f0f0;
+            border-radius: 4px;
+            overflow: hidden;
+            margin-bottom: 30px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            width: 0%;
+            transition: width 1s linear;
+            border-radius: 4px;
+        }
+
+        .controls {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-bottom: 30px;
+        }
+
+        .btn {
+            padding: 12px 30px;
+            border: none;
+            border-radius: 25px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-secondary {
+            background: #f0f0f0;
+            color: #666;
+        }
+
+        .btn-secondary:hover {
+            background: #e0e0e0;
+            transform: translateY(-2px);
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+        }
+
+        .stat-item {
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #667eea;
+            display: block;
+        }
+
+        .stat-label {
+            font-size: 0.8rem;
+            color: #999;
+            margin-top: 5px;
+        }
+
+        .settings {
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .setting-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .setting-group label {
+            font-size: 0.9rem;
+            color: #666;
+        }
+
+        .setting-group input {
+            width: 60px;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            text-align: center;
+            font-size: 1rem;
+        }
+
+        @media (max-width: 480px) {
+            .container {
+                padding: 30px 20px;
+            }
+            
+            h1 {
+                font-size: 2rem;
+            }
+            
+            .timer-display {
+                font-size: 3.5rem;
+            }
+            
+            .stats {
+                grid-template-columns: 1fr;
+                gap: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🍅 专注番茄钟</h1>
+        <p class="subtitle">简单好用的番茄工作法计时工具</p>
+        
+        <div class="mode-indicator" id="modeIndicator">准备开始</div>
+        
+        <div class="timer-display" id="timerDisplay">25:00</div>
+        
+        <div class="progress-bar">
+            <div class="progress-fill" id="progressFill"></div>
+        </div>
+        
+        <div class="controls">
+            <button class="btn btn-primary" id="startBtn">开始专注</button>
+            <button class="btn btn-secondary" id="pauseBtn" disabled>暂停</button>
+            <button class="btn btn-secondary" id="resetBtn">重置</button>
+            <button class="btn btn-secondary" id="skipBtn" disabled>跳过</button>
+        </div>
+        
+        <div class="stats">
+            <div class="stat-item">
+                <span class="stat-value" id="completedPomodoros">0</span>
+                <span class="stat-label">今日完成</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-value" id="totalFocusTime">0</span>
+                <span class="stat-label">总专注时间(分钟)</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-value" id="currentStreak">0</span>
+                <span class="stat-label">连续专注</span>
+            </div>
+        </div>
+        
+        <div class="settings">
+            <div class="setting-group">
+                <label for="workDuration">工作时长(分钟):</label>
+                <input type="number" id="workDuration" min="5" max="60" value="25">
+            </div>
+            <div class="setting-group">
+                <label for="breakDuration">休息时长(分钟):</label>
+                <input type="number" id="breakDuration" min="1" max="30" value="5">
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 状态管理
+        let timer = null;
+        let isRunning = false;
+        let isWorkMode = true;
+        let currentTime = 25 * 60;
+        let totalTime = 25 * 60;
+        let completedPomodoros = 0;
+        let totalFocusTime = 0;
+        let currentStreak = 0;
+
+        // DOM元素
+        const timerDisplay = document.getElementById('timerDisplay');
+        const modeIndicator = document.getElementById('modeIndicator');
+        const progressFill = document.getElementById('progressFill');
+        const startBtn = document.getElementById('startBtn');
+        const pauseBtn = document.getElementById('pauseBtn');
+        const resetBtn = document.getElementById('resetBtn');
+        const skipBtn = document.getElementById('skipBtn');
+        const completedPomodorosEl = document.getElementById('completedPomodoros');
+        const totalFocusTimeEl = document.getElementById('totalFocusTime');
+        const currentStreakEl = document.getElementById('currentStreak');
+        const workDurationInput = document.getElementById('workDuration');
+        const breakDurationInput = document.getElementById('breakDuration');
+
+        // 音频元素
+        const notificationSound = new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBSuBzvLZiTYIG2m98OScTgwOUarm7blmGgU7k9n1unEiBC13yO/eizEIHWq+8+OWT');
+
+        // 格式化时间
+        function formatTime(seconds) {
+            const mins = Math.floor(seconds / 60);
+            const secs = seconds % 60;
+            return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+        }
+
+        // 更新显示
+        function updateDisplay() {
+            timerDisplay.textContent = formatTime(currentTime);
+            const progress = ((totalTime - currentTime) / totalTime) * 100;
+            progressFill.style.width = `${progress}%`;
+            
+            if (isWorkMode) {
+                modeIndicator.textContent = '工作模式 👨‍💻';
+                modeIndicator.className = 'mode-indicator work';
+            } else {
+                modeIndicator.textContent = '休息模式 ☕';
+                modeIndicator.className = 'mode-indicator break';
+            }
+        }
+
+        // 切换模式
+        function switchMode() {
+            isWorkMode = !isWorkMode;
+            
+            if (isWorkMode) {
+                totalTime = parseInt(workDurationInput.value) * 60;
+                currentStreak++;
+            } else {
+                totalTime = parseInt(breakDurationInput.value) * 60;
+                completedPomodoros++;
+                totalFocusTime += parseInt(workDurationInput.value);
+                updateStats();
+            }
+            
+            currentTime = totalTime;
+            updateDisplay();
+            playNotification();
+        }
+
+        // 更新统计数据
+        function updateStats() {
+            completedPomodorosEl.textContent = completedPomodoros;
+            totalFocusTimeEl.textContent = totalFocusTime;
+            currentStreakEl.textContent = currentStreak;
+            
+            // 保存到localStorage
+            localStorage.setItem('pomodoro_stats', JSON.stringify({
+                completedPomodoros,
+                totalFocusTime,
+                currentStreak,
+                lastDate: new Date().toDateString()
+            }));
+        }
+
+        // 加载统计数据
+        function loadStats() {
+            const saved = localStorage.getItem('pomodoro_stats');
+            if (saved) {
+                const stats = JSON.parse(saved);
+                const lastDate = stats.lastDate;
+                const today = new Date().toDateString();
+                
+                if (lastDate === today) {
+                    completedPomodoros = stats.completedPomodoros;
+                    totalFocusTime = stats.totalFocusTime;
+                    currentStreak = stats.currentStreak;
+                } else {
+                    // 新的一天，重置连续专注
+                    currentStreak = 0;
+                }
+                updateStats();
+            }
+        }
+
+        // 播放提醒音
+        function playNotification() {
+            notificationSound.play().catch(() => {
+                // 如果音频播放失败，使用浏览器通知
+                if (Notification.permission === 'granted') {
+                    new Notification(isWorkMode ? '工作时间到！' : '休息时间到！', {
+                        body: isWorkMode ? '开始专注工作吧 💪' : '休息一下，放松眼睛 👀',
+                        icon: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjQiIGhlaWdodD0iNjQiIHZpZXdCb3g9IjAgMCA2NCA2NCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjY0IiBoZWlnaHQ9IjY0IiByeD0iMTIiIGZpbGw9IiM2NjdlZWEiLz4KPHBhdGggZD0iTTMyIDRMMzYuNDcgMTIuNTNMNDYgMTZMMzYuNDcgMTkuNDdMMzIgMjhMMjcuNTMgMTkuNDdMMTggMTZMMjcuNTMgMTIuNTNMMzIgNFoiIGZpbGw9IndoaXRlIi8+CjxwYXRoIGQ9Ik0yOCAzNlMzMiA0MCAzMiA0MFMzNiAzNiAzNiAzNlY0OEgyOFYzNloiIGZpbGw9IndoaXRlIi8+Cjwvc3ZnPg=='
+                    });
+                }
+            });
+        }
+
+        // 请求通知权限
+        function requestNotificationPermission() {
+            if ('Notification' in window && Notification.permission !== 'granted') {
+                Notification.requestPermission();
+            }
+        }
+
+        // 开始计时
+        function startTimer() {
+            if (isRunning) return;
+            
+            isRunning = true;
+            startBtn.disabled = true;
+            pauseBtn.disabled = false;
+            skipBtn.disabled = false;
+            workDurationInput.disabled = true;
+            breakDurationInput.disabled = true;
+            
+            timer = setInterval(() => {
+                currentTime--;
+                updateDisplay();
+                
+                if (currentTime <= 0) {
+                    clearInterval(timer);
+                    isRunning = false;
+                    switchMode();
+                    startBtn.disabled = false;
+                    pauseBtn.disabled = true;
+                    skipBtn.disabled = true;
+                    workDurationInput.disabled = false;
+                    breakDurationInput.disabled = false;
+                }
+            }, 1000);
+        }
+
+        // 暂停计时
+        function pauseTimer() {
+            if (!isRunning) return;
+            
+            clearInterval(timer);
+            isRunning = false;
+            startBtn.disabled = false;
+            pauseBtn.disabled = true;
+            startBtn.textContent = '继续';
+        }
+
+        // 重置计时
+        function resetTimer() {
+            clearInterval(timer);
+            isRunning = false;
+            isWorkMode = true;
+            totalTime = parseInt(workDurationInput.value) * 60;
+            currentTime = totalTime;
+            startBtn.disabled = false;
+            pauseBtn.disabled = true;
+            skipBtn.disabled = true;
+            workDurationInput.disabled = false;
+            breakDurationInput.disabled = false;
+            startBtn.textContent = '开始专注';
+            updateDisplay();
+        }
+
+        // 跳过当前阶段
+        function skipTimer() {
+            clearInterval(timer);
+            isRunning = false;
+            switchMode();
+            startBtn.disabled = false;
+            pauseBtn.disabled = true;
+            skipBtn.disabled = true;
+            workDurationInput.disabled = false;
+            breakDurationInput.disabled = false;
+            startBtn.textContent = '开始专注';
+        }
+
+        // 时长设置改变
+        function updateDurations() {
+            if (!isRunning && isWorkMode) {
+                totalTime = parseInt(workDurationInput.value) * 60;
+                currentTime = totalTime;
+                updateDisplay();
+            }
+        }
+
+        // 事件监听
+        startBtn.addEventListener('click', startTimer);
+        pauseBtn.addEventListener('click', pauseTimer);
+        resetBtn.addEventListener('click', resetTimer);
+        skipBtn.addEventListener('click', skipTimer);
+        workDurationInput.addEventListener('change', updateDurations);
+        breakDurationInput.addEventListener('change', updateDurations);
+
+        // 初始化
+        loadStats();
+        updateDisplay();
+        requestNotificationPermission();
+
+        // 键盘快捷键
+        document.addEventListener('keydown', (e) => {
+            if (e.code === 'Space') {
+                e.preventDefault();
+                if (isRunning) {
+                    pauseTimer();
+                } else {
+                    startTimer();
+                }
+            } else if (e.code === 'KeyR') {
+                resetTimer();
+            } else if (e.code === 'KeyS' && !skipBtn.disabled) {
+                skipTimer();
+            }
+        });
+    </script>
+</body>
+</html>
